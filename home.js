@@ -30,7 +30,18 @@ var plugins = {
     travelogue: config // use '../../' instead of travelogue if testing this repo locally
 };
 
-var server = new Hapi.Server(config.hostname, config.port);
+var options = {
+  views: {
+    engines: { html: 'handlebars' },
+    path: __dirname + '/views',
+    partialsPath: __dirname + '/views/partials',
+    layout: true
+  }
+};
+
+var server = new Hapi.Server(config.hostname, config.port, options);
+
+
 server.pack.allow({ ext: true }).require(plugins, function (err) {
 
     if (err) {
@@ -178,6 +189,16 @@ server.addRoute({
     }
 });
 
+server.addRoute({
+  method: 'GET',
+  path: '/admin',
+  config: {
+      auth: false,
+      handler: function (request) {
+        return request.reply.view('admin', {admin: 123});
+      }
+  }
+});
 
 server.start(function () {
 
