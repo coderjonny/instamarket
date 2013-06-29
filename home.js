@@ -1,10 +1,13 @@
 var Hapi = require('hapi');
+var Sequelize = require('sequelize');
 var instagramStrategy = require('passport-instagram').Strategy;
+var sequelize;
 
 try {
     var config = require("./config.json");
 }
 catch (e) {
+    console.log('thrown:', e);
     var config = {
         hostname: 'localhost',
         port: 9000,
@@ -23,7 +26,7 @@ catch (e) {
 var plugins = {
     yar: {
         cookieOptions: {
-            password: 'worldofwalmart',
+            password: 'jono',
             isSecure: false
         }
     },
@@ -178,8 +181,39 @@ server.addRoute({
     }
 });
 
+server.addRoute({
+    method: 'GET',
+    path: '/sql',
+    handler: function (request) {
+
+        sequelize.query("SELECT * FROM mytable").success(function(rows){
+            request.reply("<pre>" + JSON.stringify(rows, null, 2) + "</pre>");
+        })
+    }
+})
+
+server.addRoute({
+    method: 'GET',
+    path: '/js/{path*}',
+    handler: {
+        directory: {
+            path: ['./public/js/']
+        }
+    }
+});
+server.addRoute({
+    method: 'GET',
+    path: '/css/{path*}',
+    handler: {
+        directory: {
+            path: ['./public/css/']
+        }
+    }
+});
+
 
 server.start(function () {
 
+    sequelize = new Sequelize(config.db.database, config.db.username, config.db.password)
     console.log('server started on port: ', server.info.port);
 });
