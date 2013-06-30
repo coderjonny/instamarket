@@ -22,6 +22,7 @@
     "passport-instagram": "~0.1.2",
     "hapi": "~1.8.2",
     "handlebars": "~1.0.12",
-    "sequelize": "~2.0.0-alpha2"
+    "sequelize": "~2.0.0-alpha2",
+    "sequelize-postgres": "~1.7.0-alpha2"
   }
 }

@@ -1,5 +1,11 @@
 var Hapi = require('hapi');
 var instagramStrategy = require('passport-instagram').Strategy;
+var Sequelize = require('sequelize-postgres').sequelize;
+var postgres  = require('sequelize-postgres').postgres;
+
+var sequelize = new Sequelize('database', 'username', 'password', {
+  dialect: 'postgres'
+});
 
 try {
     var config = require("./config.json");
@@ -201,6 +207,8 @@ server.addRoute({
 });
 
 server.start(function () {
-
-    console.log('server started on port: ', server.info.port);
+  console.log('server started on port: ', server.info.port);
 });
+
+var table = server.routingTable()
+console.log(table);
