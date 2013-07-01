@@ -1,16 +1,22 @@
 var Hapi = require('hapi');
+//var Sequelize = require('sequelize');
 var instagramStrategy = require('passport-instagram').Strategy;
-var Sequelize = require('sequelize-postgres').sequelize;
-var postgres  = require('sequelize-postgres').postgres;
+//var Sequelize = require('sequelize-postgres').sequelize;
+//var postgres  = require('sequelize-postgres').postgres;
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://127.0.0.1/instamarket');
 
-var sequelize = new Sequelize('database', 'username', 'password', {
-  dialect: 'postgres'
+var kittySchema = mongoose.Schema({
+    name: String,
+    age: Number
 });
+var Kitten = mongoose.model('Kitten', kittySchema);
 
 try {
     var config = require("./config.json");
 }
 catch (e) {
+    console.log('thrown:', e);
     var config = {
         hostname: 'localhost',
         port: 9000,
@@ -21,7 +27,7 @@ catch (e) {
         instagram: {
             clientID: "...",
             clientSecret: "...",
-            callbackURL: "http://localhost:8000/auth/instagram/callback"
+            callbackURL: "http://localhost:9000/auth/instagram/callback"
         }
     };
 }
@@ -117,7 +123,15 @@ server.addRoute({
 
         // If logged in already, redirect to /home
         // else to /login
-        return request.reply("ACCESS GRANTED");
+        Kitten.find({ name: /^fluff/ }, function(err, kittens){
+
+          if (err){
+            console.log(err);
+            return request.reply(err);
+          } // TODO handle err
+
+          return request.reply.view('index', {home: JSON.stringify(kittens)});
+        });
     }
 });
 
@@ -206,9 +220,43 @@ server.addRoute({
   }
 });
 
-server.start(function () {
-  console.log('server started on port: ', server.info.port);
+server.addRoute({
+    method: 'GET',
+    path: '/sql',
+    handler: function (request) {
+
+      var fluffy = new Kitten({ name: 'fluffy' });
+
+      fluffy.save(function (err, fluffy) {
+        if (err){
+          return request.reply(err);
+        }
+        return request.reply(fluffy.name);
+      });
+    }
 });
 
-var table = server.routingTable()
-console.log(table);
+server.addRoute({
+    method: 'GET',
+    path: '/js/{path*}',
+    handler: {
+        directory: {
+            path: ['./public/js/']
+        }
+    }
+});
+server.addRoute({
+    method: 'GET',
+    path: '/css/{path*}',
+    handler: {
+        directory: {
+            path: ['./public/css/']
+        }
+    }
+});
+
+
+server.start(function () {
+  console.log('server started on port: ', server.info.port);
+
+});
